@@ -1,78 +1,3 @@
-// const express = require('express');
-// const router = express.Router();
-// const Vehicle = require('../models/Vehicle');
-// const authMiddleware = require('../middleware/authMiddleware');
-
-// // Create new vehicle (Admin only)
-// router.post('/', authMiddleware, async (req, res) => {
-//   try {
-//     const vehicle = new Vehicle(req.body);
-//     const newVehicle = await vehicle.save();
-//     res.status(201).json(newVehicle);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// });
-
-// router.post('/', async (req, res) => {
-//   try {
-//     console.log('Received vehicle data:', req.body);
-//     // ... rest of code
-//   } catch (err) {
-//     console.error('Vehicle creation error:', err);
-//     res.status(400).json({ message: err.message });
-//   }
-// });
-
-// // Get all vehicles
-// router.get('/', async (req, res) => {
-//   try {
-//     const vehicles = await Vehicle.find().select('name images quickSpecs');
-//     res.json(vehicles);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// });
-
-// // Get single vehicle
-// router.get('/:id', async (req, res) => {
-//   try {
-//     const vehicle = await Vehicle.findById(req.params.id);
-//     if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
-//     res.json(vehicle);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// });
-
-// // Update vehicle (Admin only)
-// router.patch('/:id', authMiddleware, async (req, res) => {
-//   try {
-//     const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, req.body, { 
-//       new: true,
-//       runValidators: true
-//     });
-//     if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
-//     res.json(vehicle);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// });
-
-// // Delete vehicle (Admin only)
-// router.delete('/:id', authMiddleware, async (req, res) => {
-//   try {
-//     const vehicle = await Vehicle.findByIdAndDelete(req.params.id);
-//     if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
-//     res.json({ message: 'Vehicle deleted successfully' });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// });
-
-// module.exports = router;
-
-
 
 // src/routes/vehicleRoutes.js
 const express = require('express');
@@ -80,26 +5,47 @@ const router = express.Router();
 const Vehicle = require('../models/Vehicle');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Get all vehicles (for dropdown)
+
+// Get all vehicles with necessary fields for listing
 // router.get('/', async (req, res) => {
 //   try {
-//     const vehicles = await Vehicle.find().select('_id name');
+//     // const vehicles = await Vehicle.find().select('name images quickSpecs brochure');
+//     const vehicles = await Vehicle.find().select('name images quickSpecs brochure detailedSpecs');
 //     res.json(vehicles);
 //   } catch (err) {
 //     res.status(500).json({ message: 'Server error', error: err.message });
 //   }
 // });
 
-// Get all vehicles with necessary fields for listing
+// src/routes/vehicleRoutes.js
 router.get('/', async (req, res) => {
   try {
-    // const vehicles = await Vehicle.find().select('name images quickSpecs brochure');
-    const vehicles = await Vehicle.find().select('name images quickSpecs brochure detailedSpecs');
+    const { category, subCategory, fuel } = req.query;
+    const filter = {};
+
+    // Use RegExp for case-insensitive and whole-value matching  
+    if (category) {
+      filter['detailedSpecs.Vehicle Information.Product Category'] = new RegExp(`^${category.trim()}$`, 'i');
+    }
+    if (fuel) {
+      filter['detailedSpecs.Performance.Fuel Type'] = new RegExp(`^${fuel.trim()}$`, 'i');
+    }
+    // If you have subCategory info in a nested field, update path below
+    // if (subCategory) {
+    //   filter['detailedSpecs.Vehicle Information.SubCategoryField'] = new RegExp(`^${subCategory.trim()}$`, 'i');
+    // }
+
+    const vehicles = await Vehicle.find(filter).select(
+      'name model images quickSpecs brochure detailedSpecs'
+    );
+
     res.json(vehicles);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+
 
 // Get single vehicle
 router.get('/:id', async (req, res) => {

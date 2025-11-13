@@ -31,7 +31,7 @@ app.use(cors({
     origin: [
         // 'http://localhost:3000', // Your local development frontend
         // 'http://localhost:3001', // Your local development admin panel
-        // 'https://janathaautomobiles.netlify.app', // Your deployed frontend
+        'https://janathaautomobiles.netlify.app', // Your deployed frontend
         'https://japl-adminpanel.onrender.com', // Your deployed admin panel
         'https://japl-admin-panel.netlify.app',
         'https://japl.co.in' // Another deployed frontend
@@ -46,6 +46,7 @@ const vehicleRoutes = require('./routes/vehicleRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
+const branchQRCodeRoutes = require('./routes/branchQRCodeRoute');
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/applications', applicationRoutes);
@@ -53,7 +54,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/jobs', jobRoutes);
-
+app.use('/api/branchqrcode', branchQRCodeRoutes);
 // Basic test route
 app.get('/', (req, res) => {
     res.send('Backend API is running!');
