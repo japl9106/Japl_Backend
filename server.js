@@ -45,8 +45,11 @@ const blogRoutes = require('./routes/blogRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const branchQRCodeRoutes = require('./routes/branchQRCodeRoute');
+const uploadRoutes = require("./routes/uploadRoutes");
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// add:
+app.use("/api/uploads", uploadRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehicleRoutes);
