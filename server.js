@@ -29,7 +29,7 @@ app.use(express.json());
 // CORS Middleware - Directly define multiple origins here
 app.use(cors({
     origin: [
-        'http://localhost:3000', // Your local development frontend
+        // 'http://localhost:3000', // Your local development frontend
         // 'http://localhost:3001', // Your local development admin panel
         "https://japl-backend-8xvt.onrender.com",
         'https://japl.co.in' // Another deployed frontend
