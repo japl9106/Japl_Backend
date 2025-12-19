@@ -126,7 +126,7 @@ router.post('/upload', upload.single('qrCodeImage'), async (req, res) => {
 // GET QR code by branchKey
 router.get('/:branchKey', async (req, res) => {
   try {
-    console.log("Requested branchKey:", req.params.branchKey);
+    // console.log("Requested branchKey:", req.params.branchKey);
     const qr = await BranchQRCode.findOne({ branchKey: req.params.branchKey });
     if (!qr) {
       console.log("No QR code found for:", req.params.branchKey);
