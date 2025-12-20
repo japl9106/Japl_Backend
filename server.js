@@ -29,7 +29,8 @@ app.use(express.json());
 // CORS Middleware - Directly define multiple origins here
 app.use(cors({
     origin: [
-        "https://japl-backend-8xvt.onrender.com",
+        "http://localhost:3000",
+        "https://japl-backend-v2jm.onrender.com",
         'https://japl.co.in' // Another deployed frontend
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -54,9 +55,11 @@ app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/branchqrcode', branchQRCodeRoutes);
+
+
 // Basic test route
 app.get('/', (req, res) => {
-    res.send('Backend API is running!');
+    res.send('JAPL Backend API is running!');
 });
 
 // --- SERVER START ---
