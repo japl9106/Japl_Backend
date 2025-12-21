@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
   try {
     const { category, subCategory, fuel } = req.query;
     const filter = {};
-
+console.log("Vehicles data received");
     // Use RegExp for case-insensitive and whole-value matching  
     if (category) {
       filter['detailedSpecs.Vehicle Information.Product Category'] = new RegExp(`^${category.trim()}$`, 'i');
