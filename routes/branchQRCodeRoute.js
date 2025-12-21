@@ -129,7 +129,7 @@ router.get('/:branchKey', async (req, res) => {
     // console.log("Requested branchKey:", req.params.branchKey);
     const qr = await BranchQRCode.findOne({ branchKey: req.params.branchKey });
     if (!qr) {
-      console.log("No QR code found for:", req.params.branchKey);
+      // console.log("No QR code found for:", req.params.branchKey);
       return res.status(404).json({ message: 'QR code not found for branch' });
     }
     res.status(200).json(qr);
