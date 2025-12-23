@@ -21,6 +21,11 @@
 const mongoose = require('mongoose');
 
 const branchQRCodeSchema = new mongoose.Schema({
+  branchKey: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   qrCodeImageURL: {
     type: String,
     required: true,
@@ -29,11 +34,6 @@ const branchQRCodeSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-   branchKey: {
-    type: String,
-    required: true,
-    unique: true,
-  }
 });
 
 module.exports = mongoose.model('BranchQRCode', branchQRCodeSchema);
