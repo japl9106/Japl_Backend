@@ -2,44 +2,43 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs'); // Node.js File System module
-
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const Application = require('../models/Application');
-const JobPost = require('../models/JobPost'); // Assuming you have this model
+const JobPost = require('../models/JobPost');
 
-// --- Multer Configuration for Resume Uploads ---
-const UPLOAD_DIR = path.join(__dirname, '../uploads/resumes');
+// Cloudinary configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// Ensure the upload directory exists
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (req, file, cb) => {
-    // Generate a unique filename with timestamp and original extension
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+// Configure storage for Resumes (PDF/DOCX)
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "japl/resumes",
+    resource_type: "raw", // CRITICAL: This allows PDF and DOCX files
+    public_id: (req, file) => {
+      const originalName = file.originalname.split(".")[0];
+      return `${originalName.replace(/\s+/g, "-")}-${Date.now()}`;
+    },
   },
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // Allowed up to 10MB for resumes
   fileFilter: (req, file, cb) => {
     const filetypes = /pdf|docx/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-
-    if (mimetype && extname) {
+    const extname = filetypes.test(file.originalname.toLowerCase());
+    if (extname) {
       return cb(null, true);
     }
     cb(new Error('Only PDF and DOCX files are allowed!'));
   },
-}).single('resume'); // 'resume' is the field name for the file from the frontend
+}).single('resume');
 
 // --- Public Route: Submit Job Application ---
 // @route   POST /api/applications
@@ -48,9 +47,9 @@ const upload = multer({
 router.post('/', (req, res) => {
   upload(req, res, async (err) => {
     if (err instanceof multer.MulterError) {
-      return res.status(400).json({ message: err.message }); // Multer errors (e.g., file size)
+      return res.status(400).json({ message: err.message });
     } else if (err) {
-      return res.status(500).json({ message: err.message }); // Other unexpected errors
+      return res.status(500).json({ message: err.message });
     }
 
     if (!req.file) {
@@ -60,20 +59,12 @@ router.post('/', (req, res) => {
     const { jobId, applicantName, applicantEmail, applicantPhone } = req.body;
 
     if (!jobId || !applicantName || !applicantEmail || !applicantPhone) {
-      // If required text fields are missing, delete the uploaded file
-      fs.unlink(req.file.path, (unlinkErr) => {
-        if (unlinkErr) console.error('Error deleting incomplete resume file:', unlinkErr);
-      });
       return res.status(400).json({ message: 'All form fields (Name, Email, Phone) and a resume are required.' });
     }
 
     try {
-      // Optional: Verify if the job exists and is active
       const jobExists = await JobPost.findById(jobId);
       if (!jobExists || !jobExists.isActive) {
-        fs.unlink(req.file.path, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting resume for non-existent job:', unlinkErr);
-        });
         return res.status(404).json({ message: 'Job not found or is inactive.' });
       }
 
@@ -83,17 +74,13 @@ router.post('/', (req, res) => {
         applicantName,
         applicantEmail,
         applicantPhone,
-        resumePath: `/uploads/resumes/${req.file.filename}`, // Store public path
+        resumePath: req.file.path, // This is now the Cloudinary URL
       });
 
       await newApplication.save();
       res.status(201).json({ message: 'Application submitted successfully!', application: newApplication });
     } catch (dbErr) {
       console.error('Database error saving application:', dbErr);
-      // If DB save fails, delete the uploaded file to prevent orphans
-      fs.unlink(req.file.path, (unlinkErr) => {
-        if (unlinkErr) console.error('Error deleting resume after DB failure:', unlinkErr);
-      });
       res.status(500).json({ message: 'Failed to save application details.' });
     }
   });
@@ -115,9 +102,5 @@ router.get('/', async (req, res) => {
   }
 });
 
-
-// Add other admin application routes (e.g., update status, delete application)
-// router.patch('/:id/status', protect, authorize('admin'), async (req, res) => { ... });
-// router.delete('/:id', protect, authorize('admin'), async (req, res) => { ... });
 
 module.exports = router;

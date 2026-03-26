@@ -12,11 +12,20 @@
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+<<<<<<< HEAD
+=======
+    "cloudinary": "^1.41.3",
+>>>>>>> 5079cce (cloudinary feature initialized)
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+<<<<<<< HEAD
     "mongoose": "^8.15.1"
+=======
+    "mongoose": "^8.15.1",
+    "multer-storage-cloudinary": "^4.0.0"
+>>>>>>> 5079cce (cloudinary feature initialized)
   },
   "devDependencies": {
     "multer": "^2.0.0",

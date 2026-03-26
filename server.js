@@ -26,15 +26,33 @@ const PORT = process.env.PORT || 5000;
 // --- MIDDLEWARE ---
 app.use(express.json());
 
-// CORS Middleware - Directly define multiple origins here
+// CORS Middleware
+let allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173", 
+];
+
+if (process.env.CORS_ORIGIN) {
+  // Split by comma and add to allowed list (removes spaces)
+  const prodOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+  allowedOrigins = [...allowedOrigins, ...prodOrigins];
+}
+
 app.use(cors({
-    origin: [
-        // "http://localhost:3000",
-        "https://japl.co.in",
-        "https://www.japl.co.in",
-    ],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
+  origin: function (origin, callback) {
+    // If no origin (like mobile apps/postman/curl), allow it
+    if (!origin) return callback(null, true);
+    
+    // Check if the current origin is in our allowed list
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin.startsWith(o))) {
+      return callback(null, true);
+    } else {
+      console.warn(`CORS blocked for origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+  },
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
 }));
 
 // --- ROUTES ---
@@ -63,8 +81,8 @@ app.get('/', (req, res) => {
 });
 
 app.get("/api/vehicles", (req, res, next) => {
-  console.log("GET /api/vehicles from", req.ip, req.headers.origin);
-  next();
+    console.log("GET /api/vehicles from", req.ip, req.headers.origin);
+    next();
 });
 
 

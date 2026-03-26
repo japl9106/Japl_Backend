@@ -1,31 +1,35 @@
 // routes/uploadRoutes.js
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const router = express.Router();
 
-// Configure storage: save files to /uploads and keep unique names
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "..", "uploads"));
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext);
-    cb(null, base.replace(/\s+/g, "-") + "-" + Date.now() + ext);
+// Cloudinary configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Configure storage: upload to Cloudinary directly
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "japl/blogs", // All blog images will be in this folder
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
+    public_id: (req, file) => {
+      // Use original filename without extension + unique timestamp
+      const originalName = file.originalname.split(".")[0];
+      return `${originalName.replace(/\s+/g, "-")}-${Date.now()}`;
+    },
   },
 });
 
 const upload = multer({
-  storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB limit (adjust if needed)
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only image files are allowed"));
-    }
-    cb(null, true);
-  },
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Allowed up to 5MB for Cloudinary
 });
 
 // POST /api/uploads/cover
@@ -34,11 +38,11 @@ router.post("/cover", upload.single("cover"), (req, res) => {
     return res.status(400).json({ message: "No file uploaded" });
   }
 
-  // This URL must be reachable from frontend (Render static mount already exists)
-  const fileUrl = `/uploads/${req.file.filename}`;
+  // Cloudinary property is req.file.path which stores the direct URL
+  const fileUrl = req.file.path;
 
   res.status(201).json({
-    message: "Cover image uploaded",
+    message: "Cover image uploaded successfully to Cloudinary",
     url: fileUrl,
   });
 });
