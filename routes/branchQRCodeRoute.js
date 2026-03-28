@@ -60,15 +60,26 @@ router.post('/upload', upload.single('qrCodeImage'), async (req, res) => {
 // GET QR code by branchKey
 router.get('/:branchKey', async (req, res) => {
   try {
-    // console.log("Requested branchKey:", req.params.branchKey);
-    const qr = await BranchQRCode.findOne({ branchKey: req.params.branchKey });
-    if (!qr) {
-      // console.log("No QR code found for:", req.params.branchKey);
-      return res.status(404).json({ message: 'QR code not found for branch' });
+    const { branchKey } = req.params;
+    let qr = await BranchQRCode.findOne({ branchKey });
+
+    // Fallback 1: If requested with a full key (A::B), try searching for just the sub-branch part (B)
+    if (!qr && branchKey.includes('::')) {
+      const subBranch = branchKey.split('::')[1];
+      qr = await BranchQRCode.findOne({ branchKey: subBranch });
     }
-    res.status(200).json(qr);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    // Fallback 2: If requested with just a sub-branch (B), try searching for any key ending in ::B (A::B)
+    if (!qr) {
+      qr = await BranchQRCode.findOne({ branchKey: { $regex: new RegExp(`::${branchKey}$`) } });
+    }
+
+    if (!qr) {
+      return res.status(404).json({ message: 'QR Code not found' });
+    }
+    res.json(qr);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
