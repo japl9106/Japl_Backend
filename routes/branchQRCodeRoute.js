@@ -86,11 +86,14 @@ router.get('/:branchKey', async (req, res) => {
 // DELETE QR code by branchKey
 router.delete('/:branchKey', async (req, res) => {
   try {
-    const deleted = await BranchQRCode.findOneAndDelete({ branchKey: req.params.branchKey });
-    if (!deleted) return res.status(404).json({ message: 'QR code not found' });
-    res.status(200).json({ message: 'QR code deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const { branchKey } = req.params;
+    const deleted = await BranchQRCode.findOneAndDelete({ branchKey });
+    if (!deleted) {
+      return res.status(404).json({ message: 'QR Code not found' });
+    }
+    res.json({ message: 'QR Code deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

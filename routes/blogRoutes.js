@@ -10,7 +10,8 @@ router.get('/:id', blogController.getBlogById);
 
 // Admin routes
 router.post('/', blogController.createBlog);
-router.patch('/:id', blogController.updateBlog); // <--- CHANGE BACK TO .put
+router.put('/:id', blogController.updateBlog);
+router.patch('/:id', blogController.updateBlog);
 router.delete('/:id', blogController.deleteBlog);
 
 module.exports = router;

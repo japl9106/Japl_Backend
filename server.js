@@ -33,25 +33,15 @@ let allowedOrigins = [
 
 if (process.env.CORS_ORIGIN) {
   // Split by comma and add to allowed list (removes spaces)
-  const prodOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
+  const prodOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim().replace(/\/+$/, ''));
   allowedOrigins = [...allowedOrigins, ...prodOrigins];
 }
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // If no origin (like mobile apps/postman/curl), allow it
-    if (!origin) return callback(null, true);
-
-    // Check if the current origin is in our allowed list
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin.startsWith(o))) {
-      return callback(null, true);
-    } else {
-      console.warn(`CORS blocked for origin: ${origin}`);
-      return callback(new Error('Not allowed by CORS'), false);
-    }
-  },
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  origin: allowedOrigins,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
 // --- ROUTES ---

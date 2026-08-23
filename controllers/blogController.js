@@ -26,7 +26,7 @@ exports.getBlogById = async (req, res) => {
 
 // Create a new blog (Admin only)
 exports.createBlog = async (req, res) => {
-  const { title, coverImage, content } = req.body;
+  const { title, coverImage, mediaType, content, summary, author } = req.body;
 
   if (!title || !coverImage || !content) {
     return res.status(400).json({ message: 'Please provide all required fields: title, coverImage, content' });
@@ -35,7 +35,10 @@ exports.createBlog = async (req, res) => {
   const newBlog = new Blog({
     title,
     coverImage,
+    mediaType: mediaType || 'image',
     content,
+    summary,
+    author: author || 'JAPL Team',
   });
 
   try {
@@ -49,10 +52,10 @@ exports.createBlog = async (req, res) => {
 // Update a blog by ID (Admin only)
 exports.updateBlog = async (req, res) => {
   try {
-    const { title, coverImage, content } = req.body;
+    const { title, coverImage, mediaType, content, summary, author } = req.body;
     const updatedBlog = await Blog.findByIdAndUpdate(
       req.params.id,
-      { title, coverImage, content },
+      { title, coverImage, mediaType: mediaType || 'image', content, summary, author },
       { new: true, runValidators: true } // Return the updated document and run schema validators
     );
 
