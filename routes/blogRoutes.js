@@ -6,6 +6,8 @@ const blogController = require('../controllers/blogController');
 
 // ... (other routes) ...
 router.get('/', blogController.getAllBlogs);
+router.get('/:id/preview', blogController.getBlogSharePreview);
+router.get('/:id/share', blogController.getBlogSharePreview);
 router.get('/:id', blogController.getBlogById);
 
 // Admin routes
